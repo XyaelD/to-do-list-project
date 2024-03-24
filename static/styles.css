@@ -1,0 +1,23 @@
+/* This puts the delete button for a list-item on the same z-index as the stretched-link for tasks and makes it clickable above the task */
+
+.delete-button{
+    z-index:1;
+    position: relative;
+}
+
+/* Uses Bootstrap's CSS format to change default Bootstrap styling; in this case, the bg for the body element*/
+:root,
+[data-bs-theme=light] {
+    --bs-body-bg: #EEEEEE;
+}
+
+/* Changes the default font */
+body,
+html {
+    font-family: Verdana, 'sans-serif';
+}
+
+/* Targets the main text which declares the current date being looked at */
+.date-shown{
+    text-decoration: underline;
+}

@@ -1,0 +1,88 @@
+{% extends "layout.html" %}
+
+{% block main %}
+{% if date %}
+<!-- col-md makes it so that on smaller screen sizes, the yesterday and tomorrow buttons stack on the h1 instead of the tomorrow button getting pushed to the next line -->
+<!-- The hidden variable is used to pass the correct date upon submit for all forms-->
+<div class="row justify-content-evenly mb-3">
+  <div class="col-md">
+    <form action="/getdate" method="post">
+      <input type="hidden" id="task" name="task-day" value="{{ yesterday }}">
+      <input class="btn btn-outline-primary btn-lg" type="submit" value="Yesterday's Tasks">
+    </form>
+  </div>
+  <div class="col-md">
+    <h1 class="date-shown">Tasks for {{date}}</h1>
+  </div>
+  <div class="col-md">
+    <form action="/getdate" method="post">
+      <input type="hidden" id="task" name="task-day" value="{{ tomorrow }}">
+      <input class="btn btn-outline-primary btn-lg" type="submit" value="Tomorrow's Tasks">
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- Adds a new task to the list for the current date -->
+<form action="/add" method="post" class="row justify-content-center">
+  <input type="hidden" id="hidden-date" name="hidden-date" value="{{ date }}">
+  <div class="col-auto">
+    <input autocomplete="off" required autofocus class="form-control-lg" id="task" name="task" placeholder="Add a task!"
+      type="text">
+  </div>
+  <div class="col-auto">
+    <input class="btn btn-primary btn-lg" type="submit" value="Add!">
+  </div>
+</form>
+<br>
+<!-- If any rows exist for this user and date: -->
+<!-- Create a task for each row in the database as a list item with a clickable label, checkbox and a delete button -->
+{% if rows %}
+<form action="/update" method="post">
+  <ul class="list-group">
+    <!-- This hidden variable is used to pass the correct date upon submit -->
+    <input type="hidden" id="hidden-date" name="hidden-date" value="{{ date }}">
+    <!-- For every row in the database for the current user and date -->
+    {% for row in rows %}
+    <li class="list-group-item list-group-item-primary">
+      <!-- The checkbox will have the checked property if the completed column in the database is a 1, SQLITE's version of 'True' for Bools -->
+      <input class="form-check-input me-1" type="checkbox" name="checked-tasks" value={{row["id"]}} id={{row["id"]}} {%
+        if row["completed"]==1 %} checked {% endif %}>
+      <!-- The style is using Jinja's version of a ternary operator that uses if and else instead of the ? : -->
+      <label style="text-decoration: {{ 'line-through' if row['completed'] == 1 else 'none' }}"
+        class="form-check-label stretched-link" for={{row["id"]}}>{{row["task"]}}</label>
+      <!-- Add a delete button at the end of the li that will send a unique name to trigger different logic in the /update route to delete a task -->
+      <button class="btn btn-danger btn-sm float-end delete-button" name="delete-task" value={{row["id"]}}
+        type="submit">X</button>
+    </li>
+    {% endfor %}
+  </ul>
+  <br>
+  <!-- Update all tasks based on whether they have been checked or not -->
+  <input class="btn btn-primary" type="submit" value="Update tasks">
+</form>
+<!-- If there are no rows from the database, there are no tasks for this date-->
+{% else %}
+<h2>No tasks for this date!</h2>
+{% endif %}
+</div>
+
+<!-- This is a custom script to change the text-decoartion property for all tasks live without a submit;
+      if they are completed, do a line-through like they are crossed out with a pencil;
+      the indexes for each checkbox will match the corresponding task, so use that-->
+<script>
+  const checkboxes_for_date = document.querySelectorAll('.form-check-input');
+  const tasks_for_date = document.querySelectorAll('.form-check-label');
+
+  checkboxes_for_date.forEach((checkbox, index) => {
+    checkbox.addEventListener('change', function() {
+      if (this.checked) {
+        tasks_for_date[index].style.textDecoration = 'line-through';
+      }
+      else {
+        tasks_for_date[index].style.textDecoration = 'none';
+      }
+    });
+  });
+</script>
+{% endblock %}
